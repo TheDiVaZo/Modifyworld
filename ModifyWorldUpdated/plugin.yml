@@ -1,0 +1,8 @@
+name: Modifyworld
+main: main.modifyworld.updated.Modifyworld
+soft-depend: [Vault]
+version: "${project.version}"
+author: t3hk0d3
+website: www.bukkit.org
+description: World modification permission ruleset
+api-version: 1.13
