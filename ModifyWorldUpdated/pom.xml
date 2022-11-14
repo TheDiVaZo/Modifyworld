@@ -2,18 +2,8 @@
     <modelVersion>4.0.0</modelVersion>
     <groupId>ru.tehkode</groupId>
     <artifactId>Modifyworld</artifactId>
-    <version>1.20-SNAPSHOT</version>
-    <name>Modifyworld</name>
-    <url>https://github.com/t3hk0d3/Modifyworld</url>
-    <issueManagement>
-        <system>GitHub</system>
-        <url>https://github.com/t3hk0d3/Modifyworld/issues</url>
-    </issueManagement>
-    <scm>
-        <connection>scm:git:git://github.com/PEXPlugins/Modifyworld.git</connection>
-        <developerConnection>scm:git:ssh://git@github.com/PEXPlugins/Modifyworld.git</developerConnection>
-        <url>https://github.com/PEXPlugins/PermissionsEx.git</url>
-    </scm>
+    <version>1.0-SNAPSHOT-FORK</version>
+    <name>Modifyworld-FORK</name>
     <build>
         <finalName>${project.artifactId}</finalName>
         <resources>
@@ -66,37 +56,26 @@
 
     <dependencies>
         <dependency>
-            <groupId>org.bukkit</groupId>
-            <artifactId>bukkit</artifactId>
-            <version>1.12-pre2-SNAPSHOT</version>
-            <type>jar</type>
+            <groupId>org.spigotmc</groupId>
+            <artifactId>spigot</artifactId>
+            <version>1.17.1-R0.1-SNAPSHOT</version>
+            <scope>provided</scope>
         </dependency>
         <dependency>
-            <groupId>ru.tehkode</groupId>
-            <artifactId>PermissionsEx</artifactId>
-            <version>1.23.1</version>
-            <exclusions>
-                <exclusion>
-                    <groupId>*</groupId>
-                    <artifactId>*</artifactId>
-                </exclusion>
-            </exclusions>
-        </dependency>
-        <dependency>
-          <groupId>net.milkbowl.vault</groupId>
-          <artifactId>VaultAPI</artifactId>
-          <version>1.6</version>
-          <scope>provided</scope>
+            <groupId>com.github.MilkBowl</groupId>
+            <artifactId>VaultAPI</artifactId>
+            <version>1.7</version>
+            <scope>provided</scope>
         </dependency>
     </dependencies>
 	  <repositories>
+          <repository>
+              <id>jitpack.io</id>
+              <url>https://jitpack.io</url>
+          </repository>
         <repository>
             <id>spigot-repo</id>
             <url>https://hub.spigotmc.org/nexus/content/groups/public</url>
-        </repository>
-        <repository>
-	        <id>vault-repo</id>
-            <url>http://nexus.hc.to/content/repositories/pub_releases</url>
         </repository>
         <repository>
           <id>pex-repo</id>

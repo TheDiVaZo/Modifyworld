@@ -1,8 +1,8 @@
-name: Modifyworld
+name: Modifyworld-FORK
 main: main.modifyworld.updated.Modifyworld
 soft-depend: [Vault]
 version: "${project.version}"
-author: t3hk0d3
-website: www.bukkit.org
-description: World modification permission ruleset
-api-version: 1.13
+author: ["t3hk0d3", "TheDiVaZo"]
+website: www.spigotmc.org
+description: Fork plugin for Modifyworld
+api-version: 1.17
