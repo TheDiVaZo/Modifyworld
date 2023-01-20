@@ -1,5 +1,5 @@
 name: Modifyworld-FORK
-main: main.modifyworld.updated.Modifyworld
+main: modifyworld.updated.Modifyworld
 soft-depend: [Vault]
 version: "${project.version}"
 author: ["t3hk0d3", "TheDiVaZo"]

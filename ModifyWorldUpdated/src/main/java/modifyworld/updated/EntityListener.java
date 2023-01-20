@@ -16,7 +16,7 @@
  * along with this program; if not, write to the Free Software
  * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
-package main.modifyworld.updated;
+package modifyworld.updated;
 
 import org.bukkit.configuration.ConfigurationSection;
 import org.bukkit.entity.Player;
@@ -40,32 +40,27 @@ public class EntityListener extends ModifyworldListener {
 
 	@EventHandler(priority = EventPriority.LOW)
 	public void onEntityDamage(EntityDamageEvent event) {
-		if (event instanceof EntityDamageByEntityEvent) {
-			EntityDamageByEntityEvent edbe = (EntityDamageByEntityEvent) event;
-
+		if (event instanceof EntityDamageByEntityEvent entityDamageByEntityEvent) {
 			Player player;
-			if (edbe.getDamager() instanceof Player) { // Prevent from damaging by player
-				player = (Player) edbe.getDamager();
+			if (entityDamageByEntityEvent.getDamager() instanceof Player) { // Prevent from damaging by player
+				player = (Player) entityDamageByEntityEvent.getDamager();
 				if (permissionDenied(player, "modifyworld.damage.deal", event.getEntity())) {
 					cancelDamageEvent(player, event);
 				}
 			}
-
-			if (edbe.getEntity() instanceof Player) {
-				player = (Player) edbe.getEntity();
-				if (edbe.getDamager() != null && player.isOnline()) { // Prevent from taking damage by entity
-					if (_permissionDenied(player, "modifyworld.damage.take", edbe.getDamager())) {
+			if (entityDamageByEntityEvent.getEntity() instanceof Player) {
+				player = (Player) entityDamageByEntityEvent.getEntity();
+				if (entityDamageByEntityEvent.getDamager() != null && player.isOnline()) { // Prevent from taking damage by entity
+					if (_permissionDenied(player, "modifyworld.damage.take", entityDamageByEntityEvent.getDamager())) {
 						cancelDamageEvent(player, event);
 					}
 				}
 			}
 
-		} else if (event.getEntity() instanceof Player) { // player are been damaged by enviroment
-			Player player = (Player) event.getEntity();
+		} else if (event.getEntity() instanceof Player player) { // player are been damaged by enviroment
 
 			if (_permissionDenied(player, "modifyworld.damage.take",  event.getCause().name().toLowerCase().replace("_", ""))) {
 				cancelDamageEvent(player, event);
-				return;
 			}
 		}
 	}

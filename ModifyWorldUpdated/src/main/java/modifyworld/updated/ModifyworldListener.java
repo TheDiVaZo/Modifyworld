@@ -16,8 +16,10 @@
  * along with this program; if not, write to the Free Software
  * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
-package main.modifyworld.updated;
+package modifyworld.updated;
 
+import net.milkbowl.vault.permission.Permission;
+import org.bukkit.Bukkit;
 import org.bukkit.Material;
 import org.bukkit.block.Block;
 import org.bukkit.block.BlockState;
@@ -27,12 +29,20 @@ import org.bukkit.event.Listener;
 import org.bukkit.event.inventory.InventoryType;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.plugin.Plugin;
+import org.bukkit.plugin.RegisteredServiceProvider;
+import org.bukkit.scheduler.BukkitTask;
+
+import java.util.concurrent.atomic.AtomicBoolean;
+
+import static org.bukkit.Bukkit.getServer;
 
 /**
  *
  * @author t3hk0d3
  */
 public abstract class ModifyworldListener implements Listener {
+
+	private static Permission perms = null;
 
 	protected PlayerInformer informer;
 	protected ConfigurationSection config;
@@ -42,17 +52,17 @@ public abstract class ModifyworldListener implements Listener {
 	protected boolean checkItemUse = false;
 	protected boolean enableWhitelist = false;
 
+	static {
+		setupPermissions();
+	}
+
 	public ModifyworldListener(Plugin plugin, ConfigurationSection config, PlayerInformer informer) {
 		this.informer = informer;
 		this.config = config;
 
-		this.registerEvents(plugin);
+		setConfig(config);
 
-		this.informPlayers = config.getBoolean("informPlayers", informPlayers);
-		this.useMaterialNames = config.getBoolean("use-material-names", useMaterialNames);
-		this.checkMetadata = config.getBoolean("check-metadata", checkMetadata);
-		this.checkItemUse = config.getBoolean("item-use-check", checkItemUse);
-		this.enableWhitelist = config.getBoolean("whitelist", enableWhitelist);
+		this.registerEvents(plugin);
 	}
 
 	private String getEntityName(Entity entity) {
@@ -75,14 +85,7 @@ public abstract class ModifyworldListener implements Listener {
 			return "animal." + entityName + (animal.isTamed() && animal.getOwner() != null ? "." + animal.getOwner().getName() : "");
 		}
 
-
-		EntityCategory category = EntityCategory.fromEntity(entity);
-
-		if (category == null) {
-			return entityName; // category unknown (ender crystal)
-		}
-
-		return category.getNameDot() + entityName;
+		return entityName;
 	}
 
 	private String getInventoryTypePermission(InventoryType type) {
@@ -125,14 +128,19 @@ public abstract class ModifyworldListener implements Listener {
 	*/
 
 	protected boolean permissionDenied(Player player, String basePermission, Object... arguments) {
-		String permission = assemblePermission(basePermission, arguments);
-		boolean isDenied = !player.hasPermission(permission);
+		boolean isDenied = !player.isOp() && _permissionDenied(player, basePermission, arguments);
 
 		if (isDenied) {
-			this.informer.informPlayer(player, permission, arguments);
+			this.informer.informPlayer(player, basePermission, arguments);
 		}
 
 		return isDenied;
+	}
+
+	private static boolean setupPermissions() {
+		RegisteredServiceProvider<Permission> rsp = getServer().getServicesManager().getRegistration(Permission.class);
+		perms = rsp.getProvider();
+		return perms != null;
 	}
 
 	protected boolean _permissionDenied(Player player, String permission, Object... arguments) {
@@ -174,6 +182,15 @@ public abstract class ModifyworldListener implements Listener {
 		}
 
 		return (obj.toString());
+	}
+
+	public void setConfig(ConfigurationSection config) {
+		this.config = config;
+		this.informPlayers = config.getBoolean("informPlayers", informPlayers);
+		this.useMaterialNames = config.getBoolean("use-material-names", useMaterialNames);
+		this.checkMetadata = config.getBoolean("check-metadata", checkMetadata);
+		this.checkItemUse = config.getBoolean("item-use-check", checkItemUse);
+		this.enableWhitelist = config.getBoolean("whitelist", enableWhitelist);
 	}
 
 	private void registerEvents(Plugin plugin) {

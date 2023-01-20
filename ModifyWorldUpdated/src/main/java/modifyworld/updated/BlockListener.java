@@ -16,62 +16,54 @@
  * along with this program; if not, write to the Free Software
  * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
-package main.modifyworld.updated;
+package modifyworld.updated;
 
 import org.bukkit.configuration.ConfigurationSection;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.EventPriority;
-import org.bukkit.event.vehicle.VehicleDamageEvent;
-import org.bukkit.event.vehicle.VehicleEnterEvent;
-import org.bukkit.event.vehicle.VehicleEntityCollisionEvent;
+import org.bukkit.event.block.BlockBreakEvent;
+import org.bukkit.event.block.BlockPlaceEvent;
+import org.bukkit.event.hanging.HangingBreakByEntityEvent;
+import org.bukkit.event.hanging.HangingPlaceEvent;
 import org.bukkit.plugin.Plugin;
 
 /**
  *
  * @author t3hk0d3
  */
-public class VehicleListener extends ModifyworldListener {
+public class BlockListener extends ModifyworldListener {
 
-	public VehicleListener(Plugin plugin, ConfigurationSection config, PlayerInformer informer) {
+	public BlockListener(Plugin plugin, ConfigurationSection config, PlayerInformer informer) {
 		super(plugin, config, informer);
 	}
 
 	@EventHandler(priority = EventPriority.LOW)
-	public void onVehicleDamage(VehicleDamageEvent event) {
-		if (!(event.getAttacker() instanceof Player)) {
-			return;
-		}
-
-		Player player = (Player) event.getAttacker();
-		if (permissionDenied(player, "modifyworld.vehicle.destroy", event.getVehicle())) {
+	public void onBlockBreak(BlockBreakEvent event) {
+		if (permissionDenied(event.getPlayer(), "modifyworld.blocks.destroy", event.getBlock())) {
 			event.setCancelled(true);
 		}
 	}
 
 	@EventHandler(priority = EventPriority.LOW)
-	public void onVehicleEnter(VehicleEnterEvent event) {
-		if (!(event.getEntered() instanceof Player)) {
-			return;
-		}
-
-		Player player = (Player) event.getEntered();
-		if (permissionDenied(player, "modifyworld.vehicle.enter", event.getVehicle())) {
+	public void onBlockPlace(BlockPlaceEvent event) {
+		if (permissionDenied(event.getPlayer(), "modifyworld.blocks.place", event.getBlock())) {
 			event.setCancelled(true);
 		}
 	}
 
 	@EventHandler(priority = EventPriority.LOW)
-	public void onVehicleEntityCollision(VehicleEntityCollisionEvent event) {
-		if (!(event.getEntity() instanceof Player)) {
-			return;
-		}
-
-		Player player = (Player) event.getEntity();
-		if (_permissionDenied(player, "modifyworld.vehicle.collide", event.getVehicle())) {
+	public void onHangingBreakByEntity(HangingBreakByEntityEvent event) {
+		if (event.getRemover() instanceof Player player
+				&& permissionDenied(player, "modifyworld.blocks.destroy", event.getEntity().getType())) {
 			event.setCancelled(true);
-			event.setCollisionCancelled(true);
-			event.setPickupCancelled(true);
+		}
+	}
+
+	@EventHandler(priority = EventPriority.LOW)
+	public void onPaintingPlace(HangingPlaceEvent event) {
+		if (permissionDenied(event.getPlayer(), "modifyworld.blocks.place", event.getEntity().getType())) {
+			event.setCancelled(true);
 		}
 	}
 }

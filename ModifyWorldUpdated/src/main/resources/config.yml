@@ -1,4 +1,13 @@
+settings:
+  item-restrictions: true
+  drop-restricted-item: true
+  informPlayers: true
+  use-material-names: true
+  check-metadata: true
+  item-use-check: true
+  whitelist: false
 messages:
+  inform-players: true
   message-format: '&f[&2Modifyworld&f]&4 %s'
   default-message: Sorry, you don't have enough permissions
   modifyworld.items.use: Stop, &a$1&4 won't fit into &a$3

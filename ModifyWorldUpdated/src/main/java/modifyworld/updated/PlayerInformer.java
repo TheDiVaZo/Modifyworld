@@ -1,17 +1,16 @@
-package main.modifyworld.updated;
+package modifyworld.updated;
 
 import net.milkbowl.vault.chat.Chat;
 import org.bukkit.Bukkit;
 import org.bukkit.Material;
 import org.bukkit.block.Block;
 import org.bukkit.configuration.ConfigurationSection;
+import org.bukkit.configuration.file.FileConfiguration;
 import org.bukkit.entity.ComplexEntityPart;
 import org.bukkit.entity.Entity;
 import org.bukkit.entity.Item;
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.ItemStack;
-import ru.tehkode.permissions.PermissionUser;
-import ru.tehkode.permissions.bukkit.PermissionsEx;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -81,47 +80,12 @@ public class PlayerInformer {
 		if (Bukkit.getServer().getPluginManager().isPluginEnabled("Vault")) {
 			message = getMessageVault(player, permission);
 		}
-		if (message == null) {
-			try {
-				Class.forName("ru.tehkode.permissions.bukkit.PermissionsEx");
-				message = getMessagePEX(player, permission);
-			} catch (ClassNotFoundException ignore) {
-			}
-		}
 
 		if (message != null) {
 			return message;
 		}
 
 		return getMessage(permission);
-	}
-
-	public String getMessagePEX(Player player, String permission) {
-		if (PermissionsEx.isAvailable()) {
-			PermissionUser user = PermissionsEx.getUser(player);
-
-			String message;
-			String perm = permission;
-			int index;
-
-			while ((index = perm.lastIndexOf(".")) != -1) {
-				perm = perm.substring(0, index);
-
-				message = user.getOption("permission-denied-" + perm, player.getWorld().getName(), null);
-				if (message == null) {
-					continue;
-				}
-
-				return message;
-			}
-
-			message = user.getOption("permission-denied", player.getWorld().getName(), null);
-
-			if (message != null) {
-				return message;
-			}
-		}
-		return null;
 	}
 
 	private String getMessageVault(Player player, String permission) {
@@ -211,5 +175,11 @@ public class PlayerInformer {
 			setMessage("modifyworld", config.getString("permissionDenied"));
 			config.set("permissionDenied", null);
 		}
+	}
+
+	public void setConfig(ConfigurationSection config) {
+		this.enabled = config.getBoolean("inform-players", enabled);
+
+		this.loadConfig(config);
 	}
 }

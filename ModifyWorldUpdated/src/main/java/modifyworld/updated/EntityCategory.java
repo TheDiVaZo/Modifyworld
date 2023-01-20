@@ -17,10 +17,12 @@
  * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
-package main.modifyworld.updated;
+package modifyworld.updated;
 
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Set;
+
 import org.bukkit.entity.*;
 
 
@@ -32,10 +34,10 @@ public enum EntityCategory {
 	NPC("npc", NPC.class),
 	PROJECTILE("projectile", Projectile.class);
 	
-	private String name;
-	private Class<? extends Entity> classes[];
+	private final String name;
+	private final Class<? extends Entity>[] classes;
 	
-	private final static Map<Class<? extends Entity>, EntityCategory> map = new HashMap<Class<? extends Entity>, EntityCategory>();
+	private static final Map<Class<? extends Entity>, EntityCategory> map = new HashMap<>();
 	
 	static {
 		for (EntityCategory cat : EntityCategory.values()) {
@@ -45,6 +47,7 @@ public enum EntityCategory {
 		}
 	}
 	
+	@SafeVarargs
 	private EntityCategory(String name, Class<? extends Entity>... classes) {
 		this.name = name;
 		this.classes = classes;
@@ -63,9 +66,9 @@ public enum EntityCategory {
 	}
 	
 	public static EntityCategory fromEntity(Entity entity) {
-		for (Class<? extends Entity> entityClass : map.keySet()) {
-			if (entityClass.isAssignableFrom(entity.getClass())) {
-				return map.get(entityClass);
+		for (Map.Entry<Class<? extends Entity>, EntityCategory> entitySetClass : map.entrySet()) {
+			if (entitySetClass.getKey().isAssignableFrom(entity.getClass())) {
+				return entitySetClass.getValue();
 			}
 		}
 		

@@ -16,38 +16,32 @@
  * along with this program; if not, write to the Free Software
  * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
-package main.modifyworld.updated;
+package modifyworld.updated;
 
+import java.util.Locale;
 import java.util.logging.Logger;
 
+import org.bukkit.Bukkit;
 import org.bukkit.Material;
 import org.bukkit.configuration.ConfigurationSection;
+import org.bukkit.entity.Egg;
 import org.bukkit.entity.Player;
 import org.bukkit.event.Event.Result;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.EventPriority;
 import org.bukkit.event.block.Action;
 import org.bukkit.event.enchantment.EnchantItemEvent;
+import org.bukkit.event.entity.EntityPickupItemEvent;
 import org.bukkit.event.entity.FoodLevelChangeEvent;
 import org.bukkit.event.inventory.CraftItemEvent;
 import org.bukkit.event.inventory.InventoryClickEvent;
+import org.bukkit.event.inventory.InventoryMoveItemEvent;
 import org.bukkit.event.inventory.InventoryType;
-import org.bukkit.event.player.PlayerBedEnterEvent;
-import org.bukkit.event.player.PlayerBucketEmptyEvent;
-import org.bukkit.event.player.PlayerBucketFillEvent;
-import org.bukkit.event.player.PlayerChatEvent;
-import org.bukkit.event.player.PlayerCommandPreprocessEvent;
-import org.bukkit.event.player.PlayerDropItemEvent;
-import org.bukkit.event.player.PlayerInteractEntityEvent;
-import org.bukkit.event.player.PlayerInteractEvent;
-import org.bukkit.event.player.PlayerItemHeldEvent;
-import org.bukkit.event.player.PlayerLoginEvent;
-import org.bukkit.event.player.PlayerPickupItemEvent;
-import org.bukkit.event.player.PlayerToggleSneakEvent;
-import org.bukkit.event.player.PlayerToggleSprintEvent;
+import org.bukkit.event.player.*;
 import org.bukkit.inventory.Inventory;
 import org.bukkit.inventory.InventoryHolder;
 import org.bukkit.inventory.ItemStack;
+import org.bukkit.inventory.PlayerInventory;
 import org.bukkit.material.SpawnEgg;
 import org.bukkit.plugin.Plugin;
 
@@ -139,20 +133,19 @@ public class PlayerListener extends ModifyworldListener {
 	}
 
 	@EventHandler(priority = EventPriority.LOW)
-	public void onPlayerChat(PlayerChatEvent event) {
+	public void onPlayerChat(AsyncPlayerChatEvent event) {
 		if (permissionDenied(event.getPlayer(), "modifyworld.chat")) {
 			event.setCancelled(true);
 		}
 	}
 
 	@EventHandler(priority = EventPriority.LOW)
-	public void onPlayerPickupItem(PlayerPickupItemEvent event) {
+	public void onPlayerPickupItem(EntityPickupItemEvent event) {
 		// No inform to avoid spam
-		if (_permissionDenied(event.getPlayer(), "modifyworld.items.pickup", event.getItem().getItemStack())) {
+		if (event.getEntity() instanceof Player player && _permissionDenied(player, "modifyworld.items.pickup", event.getItem().getItemStack())) {
 			event.setCancelled(true);
 		}
-
-		this.checkPlayerInventory(event.getPlayer());
+		else if(event.getEntity() instanceof Player player) this.checkPlayerInventory(player);
 	}
 
 	@EventHandler(priority = EventPriority.LOW)
@@ -187,32 +180,19 @@ public class PlayerListener extends ModifyworldListener {
 
 	@EventHandler(priority = EventPriority.LOW)
 	public void onPlayerInventoryClick(InventoryClickEvent event) {
-		InventoryHolder holder = event.getInventory().getHolder();
-
-		if (holder instanceof Player || // do not track inter-inventory stuff
-				event.getRawSlot() >= event.getView().getTopInventory().getSize() || // top inventory only
-				event.getSlotType() == InventoryType.SlotType.OUTSIDE ||  // do not track drop
-				event.getSlot() == -999) { // temporary fix for bukkit bug (BUKKIT-2768)
-			return;
-		}
-
-		ItemStack take = event.getCurrentItem();
-
-		String action;
-		ItemStack item;
-
-		if (take == null) {
-			action = "put";
-			item = event.getCursor();
-		} else {
-			action = "take";
-			item = take;
-		}
+		ItemStack item1 = event.getCurrentItem();
+		ItemStack item2 = event.getCursor();
 
 		Player player = (Player) event.getWhoClicked();
 
-		if (permissionDenied(player, "modifyworld.items", action, item, "of", event.getInventory().getType())) {
-			event.setCancelled(true);
+		if (
+				permissionDenied(player, "modifyworld.items", "put", item1, "of", event.getInventory().getType())||
+				permissionDenied(player, "modifyworld.items", "put", item2, "of", event.getInventory().getType())
+				||
+				permissionDenied(player, "modifyworld.items", "take", item1, "of", event.getInventory().getType())||
+				permissionDenied(player, "modifyworld.items", "take", item2, "of", event.getInventory().getType())) {
+
+				event.setCancelled(true);
 		}
 	}
 
@@ -265,8 +245,8 @@ public class PlayerListener extends ModifyworldListener {
 						break;
 					}
 				case EGG:
-				case LEGACY_SNOW_BALL:
-				case LEGACY_EXP_BOTTLE:
+				case SNOWBALL:
+				case EXPERIENCE_BOTTLE:
 					if (permissionDenied(player, "modifyworld.items.throw", player.getItemInHand())) {
 						event.setUseItemInHand(Result.DENY);
 						//Denying a potion works fine, but the client needs to be updated because it already reduced the item.
@@ -275,7 +255,7 @@ public class PlayerListener extends ModifyworldListener {
 						}
 					}
 					return; // no need to check further
-				case LEGACY_MONSTER_EGG: // don't add MONSTER_EGGS here
+				case SALMON_SPAWN_EGG: // don't add MONSTER_EGGS here
 					if (permissionDenied(player, "modifyworld.spawn", ((SpawnEgg)player.getItemInHand().getData()).getSpawnedType())) {
 						event.setUseItemInHand(Result.DENY);
 					}
@@ -286,16 +266,14 @@ public class PlayerListener extends ModifyworldListener {
 		if (action != Action.LEFT_CLICK_BLOCK && action != Action.RIGHT_CLICK_BLOCK && action != Action.PHYSICAL) {
 			return;
 		}
-
 		if (this.checkItemUse && action != Action.PHYSICAL) {
-			if (permissionDenied(event.getPlayer(), "modifyworld.items.use", player.getItemInHand(), "on.block", event.getClickedBlock())) {
+			if (permissionDenied(event.getPlayer(), "modifyworld.items.use", player.getItemInHand().getType().name().toLowerCase(Locale.ROOT), "on.block", event.getClickedBlock().getType().name().toLowerCase(Locale.ROOT))) {
 				event.setCancelled(true);
 			}
 
 			return;
 		}
-
-		if (!event.isCancelled() && permissionDenied(player, "modifyworld.blocks.interact", event.getClickedBlock())) {
+		if (permissionDenied(player, "modifyworld.blocks.interact", event.getClickedBlock())) {
 			event.setCancelled(true);
 		}
 	}
